@@ -4,8 +4,8 @@
 #include <stdlib.h>
 
 void init_colours( void );
-void set_mode( bool m );
 void key_for_mode( bool mode, int ch );
+void backspace( void );
 
 int main ( int argc, char ** argv ) {
 
@@ -21,7 +21,7 @@ int main ( int argc, char ** argv ) {
 	keypad( stdscr, TRUE );
 	dinit( row, col );
 
-	while ( ch = getch() ) {
+	while ( (ch = getch()) ) {
 
 		getyx( stdscr, c_row, c_col );
 
@@ -95,24 +95,13 @@ void init_colours( void ) {
 
 }
 
-void set_mode ( bool m ) {
-
-	if ( m == TRUE ) {
-		noecho();
-	} else {
-		noecho();
-	}
-
-}
-
-
 void key_for_mode( bool mode, int ch ) {
 	int r, c;
 	getyx( stdscr, r, c );
 	if ( mode == TRUE ) {
 		switch ( ch ) {
 
-			case '1':
+			case '1':	// Colours
 			case '2':
 			case '3':
 			case '4':
@@ -127,11 +116,28 @@ void key_for_mode( bool mode, int ch ) {
 				break;
 
 		}
-
 	} else {
-		attron( COLOR_PAIR( dcolourat( r, c ) ) );
-		addch( ch );
-		dsettext( r, c, ch );
-		attroff( COLOR_PAIR( dcolourat( r, c ) ) );
+		if (( ch > 31 ) && (ch < 127 ) ) {
+
+			attron( COLOR_PAIR( dcolourat( r, c ) ) ); // Add characters
+			addch( ch );
+			dsettext( r, c, ch );
+			attroff( COLOR_PAIR( dcolourat( r, c ) ) );
+		
+		} else if ( (ch == KEY_BACKSPACE) || ( ch == 127 ) ) {
+		
+			backspace();
+		
+		}
 	}
+}
+
+void backspace( void ) {
+	int r, c;
+	getyx( stdscr,r, c );
+	if ( c == 0 ) return;
+	move( r, c - 1 );
+	addch( ' ' );
+	move( r, c - 1 );
+
 }
