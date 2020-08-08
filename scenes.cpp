@@ -2,24 +2,36 @@
 
 #include <ncurses.h>
 #include <stdlib.h>
+#include <string>
 
 void init_colours( void );
 void key_for_mode( bool mode, int ch );
 void backspace( void );
+void image_from_data( int row,int col );
+
+std::string fn;
 
 int main ( int argc, char ** argv ) {
 
 	int ch, row, col, c_row, c_col = 0;
 	bool draw = true;
-
 	initscr();
 	init_colours();
 	noecho();
 	cbreak();
-	//set_mode( draw );
-	getmaxyx( stdscr, row, col );
 	keypad( stdscr, TRUE );
-	dinit( row, col );
+
+	if ( argc == 2 ) {
+		fn = argv[1];
+		data_read_file( fn );
+		row = data_get_row();
+		col = data_get_col();
+		image_from_data( row,col );
+	} else {
+		getmaxyx( stdscr, row, col );
+		data_init( row, col );
+	}
+
 
 	while ( (ch = getch()) ) {
 
@@ -44,7 +56,6 @@ int main ( int argc, char ** argv ) {
 
 			case '\t':
 				draw = !draw;
-				//set_mode( draw );
 				break;
 
 			default:
@@ -110,19 +121,22 @@ void key_for_mode( bool mode, int ch ) {
 			case '7':
 			case '8':
 				attron( COLOR_PAIR( ch - 48 ) );
-				addch( dtextat(r, c) );
-				dsetcolour( r, c, ch - 48 );
+				addch( data_text_at(r, c) );
+				data_set_colour( r, c, ch );
 				attroff( COLOR_PAIR( ch - 48 ) );
 				break;
 
+			case 's':
+				data_write_file( fn );
+				break;
 		}
 	} else {
 		if (( ch > 31 ) && (ch < 127 ) ) {
 
-			attron( COLOR_PAIR( dcolourat( r, c ) ) ); // Add characters
+			attron( COLOR_PAIR( data_colour_at( r, c ) - 48 ) ); // Add characters
 			addch( ch );
-			dsettext( r, c, ch );
-			attroff( COLOR_PAIR( dcolourat( r, c ) ) );
+			data_set_text( r, c, ch );
+			attroff( COLOR_PAIR( data_colour_at( r, c ) - 48 ) );
 		
 		} else if ( (ch == KEY_BACKSPACE) || ( ch == 127 ) ) {
 		
@@ -138,6 +152,21 @@ void backspace( void ) {
 	if ( c == 0 ) return;
 	move( r, c - 1 );
 	addch( ' ' );
+	data_set_text( r, c - 1, ' ' );
 	move( r, c - 1 );
+
+}
+
+void image_from_data( int row,int col ) {
+	
+	for (int ri = 0; ri < row; ri++ ) {
+		for ( int ci = 0; ci < col; ci++ ){
+			move( ri, ci );
+			attron( COLOR_PAIR( data_colour_at( ri, ci ) - 48 ) ); // Add characters
+			addch( data_text_at( ri, ci ) );
+			attroff( COLOR_PAIR( data_colour_at( ri, ci ) - 48 ) );
+		}
+	}
+	move( 0, 0 );
 
 }
