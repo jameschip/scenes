@@ -8,50 +8,57 @@ void init_colours( void );
 void key_for_mode( bool mode, int ch );
 void backspace( void );
 void image_from_data( int row,int col );
+WINDOW *create_newwin(int height, int width, int starty, int startx);
 
 std::string fn;
+WINDOW *draw_win;
 
 int main ( int argc, char ** argv ) {
 
 	int ch, row, col, c_row, c_col = 0;
 	bool draw = true;
 	initscr();
-	init_colours();
 	noecho();
 	cbreak();
-	keypad( stdscr, TRUE );
 
 	if ( argc == 2 ) {
 		fn = argv[1];
 		data_read_file( fn );
 		row = data_get_row();
 		col = data_get_col();
-		image_from_data( row,col );
-	} else {
+	}
+
+	if ( row == -1 || col == -1) {
 		getmaxyx( stdscr, row, col );
 		data_init( row, col );
 	}
 
+	draw_win = create_newwin( row, col, 0, 0 );
+	init_colours();
+	image_from_data( row,col );
+	keypad( stdscr, TRUE );
+	keypad( draw_win, TRUE );
 
-	while ( (ch = getch()) ) {
 
-		getyx( stdscr, c_row, c_col );
+	while ( (ch = wgetch( draw_win )) ) {
+
+		getyx( draw_win, c_row, c_col );
 
 		switch (ch) {
 			case KEY_UP:
-				if ( c_row > 0 ) move( c_row - 1, c_col );
+				if ( c_row > 0 ) wmove( draw_win, c_row - 1, c_col );
 				break;
 
 			case KEY_DOWN:
-				if ( c_row < row ) move( c_row + 1, c_col );
+				if ( c_row < row ) wmove( draw_win, c_row + 1, c_col );
 				break;
 
 			case KEY_LEFT:
-				if ( c_col > 0 ) move( c_row, c_col - 1 );
+				if ( c_col > 0 ) wmove( draw_win, c_row, c_col - 1 );
 				break;
 
 			case KEY_RIGHT:
-				if ( c_col < col ) move( c_row, c_col + 1 );
+				if ( c_col < col ) wmove( draw_win, c_row, c_col + 1 );
 				break;
 
 			case '\t':
@@ -100,15 +107,17 @@ void init_colours( void ) {
 	init_pair( 7, 6, 1 );
 	init_pair( 8, 6, 0 );
 
-	bkgd( COLOR_PAIR( 1 ) );
+	wbkgd( stdscr, COLOR_PAIR( 1 ) );
+	wbkgd( draw_win, COLOR_PAIR( 1 ) );
+	wclear( draw_win );
 	clear();
+	wrefresh( draw_win );
 	refresh();
-
 }
 
 void key_for_mode( bool mode, int ch ) {
 	int r, c;
-	getyx( stdscr, r, c );
+	getyx( draw_win, r, c );
 	if ( mode == TRUE ) {
 		switch ( ch ) {
 
@@ -120,10 +129,10 @@ void key_for_mode( bool mode, int ch ) {
 			case '6':
 			case '7':
 			case '8':
-				attron( COLOR_PAIR( ch - 48 ) );
-				addch( data_text_at(r, c) );
+				wattron( draw_win, COLOR_PAIR( ch - 48 ) );
+				waddch( draw_win, data_text_at(r, c) );
 				data_set_colour( r, c, ch );
-				attroff( COLOR_PAIR( ch - 48 ) );
+				wattroff( draw_win,  COLOR_PAIR( ch - 48 ) );
 				break;
 
 			case 's':
@@ -133,10 +142,10 @@ void key_for_mode( bool mode, int ch ) {
 	} else {
 		if (( ch > 31 ) && (ch < 127 ) ) {
 
-			attron( COLOR_PAIR( data_colour_at( r, c ) - 48 ) ); // Add characters
-			addch( ch );
+			wattron( draw_win, COLOR_PAIR( data_colour_at( r, c ) - 48 ) ); // Add characters
+			waddch( draw_win, ch );
 			data_set_text( r, c, ch );
-			attroff( COLOR_PAIR( data_colour_at( r, c ) - 48 ) );
+			wattroff( draw_win, COLOR_PAIR( data_colour_at( r, c ) - 48 ) );
 		
 		} else if ( (ch == KEY_BACKSPACE) || ( ch == 127 ) ) {
 		
@@ -148,12 +157,12 @@ void key_for_mode( bool mode, int ch ) {
 
 void backspace( void ) {
 	int r, c;
-	getyx( stdscr,r, c );
+	getyx( draw_win,r, c );
 	if ( c == 0 ) return;
-	move( r, c - 1 );
-	addch( ' ' );
+	wmove( draw_win,  r, c - 1 );
+	waddch( draw_win,  ' ' );
 	data_set_text( r, c - 1, ' ' );
-	move( r, c - 1 );
+	wmove( draw_win, r, c - 1 );
 
 }
 
@@ -162,11 +171,18 @@ void image_from_data( int row,int col ) {
 	for (int ri = 0; ri < row; ri++ ) {
 		for ( int ci = 0; ci < col; ci++ ){
 			move( ri, ci );
-			attron( COLOR_PAIR( data_colour_at( ri, ci ) - 48 ) ); // Add characters
-			addch( data_text_at( ri, ci ) );
-			attroff( COLOR_PAIR( data_colour_at( ri, ci ) - 48 ) );
+			wattron( draw_win, COLOR_PAIR( data_colour_at( ri, ci ) - 48 ) ); // Add characters
+			waddch(  draw_win, data_text_at( ri, ci ) );
+			wattroff( draw_win, COLOR_PAIR( data_colour_at( ri, ci ) - 48 ) );
 		}
 	}
-	move( 0, 0 );
+	wmove( draw_win, 0, 0 );
+	wrefresh( draw_win );
+}
 
+WINDOW *create_newwin(int height, int width, int starty, int startx)
+{	
+	WINDOW *local_win;
+	local_win = newwin(height, width, starty, startx);
+	return local_win;
 }

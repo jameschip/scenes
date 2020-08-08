@@ -6,7 +6,7 @@
 
 char **image_data;
 char **text_data;
-int row, col;
+int row, col = -1;
 
 void size_from_file( const std::string & strToSplit );
 
