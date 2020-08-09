@@ -26,5 +26,5 @@ clean:
 
 install:
 	mkdir -p ~/.local/bin
-	mv $(BUILDDIR)/scenes ~/.local/bin/scenes
+	cp $(BUILDDIR)/scenes ~/.local/bin/scenes
 	
