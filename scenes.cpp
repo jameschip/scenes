@@ -91,7 +91,6 @@ int main ( int argc, char ** argv ) {
 
 	data_free();
 	delwin( draw_win );
-
 	return 0;
 
 }
@@ -175,7 +174,9 @@ void backspace( void ) {
 	getyx( draw_win,r, c );
 	if ( c == 0 ) return;
 	wmove( draw_win,  r, c - 1 );
+	wattron( draw_win, COLOR_PAIR( data_colour_at( r, c -1 ) - 48 ) );
 	waddch( draw_win,  ' ' );
+	wattroff( draw_win, COLOR_PAIR( data_colour_at( r, c -1 ) - 48 ) );
 	data_set_text( r, c - 1, ' ' );
 	wmove( draw_win, r, c - 1 );
 
