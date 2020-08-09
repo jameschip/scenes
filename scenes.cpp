@@ -4,41 +4,43 @@
 #include <stdlib.h>
 #include <string>
 
+#define ctrl(x)           ((x) & 0x1f)
+
 void init_colours( void );
 void key_for_mode( bool mode, int ch );
 void backspace( void );
 void image_from_data( int row,int col );
 WINDOW *create_newwin(int height, int width, int starty, int startx);
 
-std::string fn;
 WINDOW *draw_win;
 
 int main ( int argc, char ** argv ) {
 
-	int ch, row, col, c_row, c_col = 0;
+	std::string fn;
+	int ch, row, col, c_row, c_col = -1;
 	bool draw = true;
 	initscr();
 	noecho();
 	cbreak();
+	getmaxyx( stdscr, row, col );
+
 
 	if ( argc == 2 ) {
 		fn = argv[1];
-		data_read_file( fn );
-		row = data_get_row();
-		col = data_get_col();
-	}
-
-	if ( row == -1 || col == -1) {
-		getmaxyx( stdscr, row, col );
-		data_init( row, col );
+		if ( data_read_file( fn ) == 1 ) {
+			row = data_get_row();
+			col = data_get_col();
+		} else {
+			data_init( row, col );
+		}
 	}
 
 	draw_win = create_newwin( row, col, 0, 0 );
 	init_colours();
+	
 	image_from_data( row,col );
 	keypad( stdscr, TRUE );
 	keypad( draw_win, TRUE );
-
 
 	while ( (ch = wgetch( draw_win )) ) {
 
@@ -65,6 +67,14 @@ int main ( int argc, char ** argv ) {
 				draw = !draw;
 				break;
 
+			case ctrl( 'q' ):
+				goto exit_loop;
+				break;
+
+			case ctrl( 's' ):
+				data_write_file( fn );
+				break;
+
 			default:
 				key_for_mode( draw, ch );
 				break;
@@ -74,6 +84,9 @@ int main ( int argc, char ** argv ) {
 	}
 
 	exit_loop:
+
+	data_free();
+	delwin( draw_win );
 
 	return 0;
 
@@ -108,11 +121,12 @@ void init_colours( void ) {
 	init_pair( 8, 6, 0 );
 
 	wbkgd( stdscr, COLOR_PAIR( 1 ) );
+	clear();
+	refresh();
 	wbkgd( draw_win, COLOR_PAIR( 1 ) );
 	wclear( draw_win );
-	clear();
 	wrefresh( draw_win );
-	refresh();
+	wmove( draw_win, 0, 0 );
 }
 
 void key_for_mode( bool mode, int ch ) {
@@ -135,9 +149,6 @@ void key_for_mode( bool mode, int ch ) {
 				wattroff( draw_win,  COLOR_PAIR( ch - 48 ) );
 				break;
 
-			case 's':
-				data_write_file( fn );
-				break;
 		}
 	} else {
 		if (( ch > 31 ) && (ch < 127 ) ) {

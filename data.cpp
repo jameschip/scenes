@@ -85,7 +85,7 @@ void data_write_file( const std::string& fn ) {
 
 }
 
-void data_read_file( const std::string& fn ) {
+int data_read_file( const std::string& fn ) {
 
 	std::ifstream infile;
 	
@@ -112,6 +112,11 @@ void data_read_file( const std::string& fn ) {
 			}
 		}
 
+		return 1;
+	
+	} else {
+
+		return 0;
 	}
 
 }
