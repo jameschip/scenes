@@ -2,6 +2,7 @@
 A text and graphics tooll for terminal.
 
 # Make and install.
+Linux only.  
 Requires g++ and ncurses.  
 This will clone the repo, build and then copy the binary to ```~/.local/bin/```  
 
