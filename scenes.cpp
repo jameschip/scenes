@@ -33,6 +33,10 @@ int main ( int argc, char ** argv ) {
 		} else {
 			data_init( row, col );
 		}
+	} else {
+		endwin();
+		printf("No input file!\n");
+		exit( 0 );
 	}
 
 	draw_win = create_newwin( row, col, 0, 0 );
