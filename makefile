@@ -2,8 +2,8 @@
 CXX := g++
 LXX = g++
 
-CXXFLAGS := -g -std=c++11 -Isrc/includes -c -lncurses
-LXXFLAGS := -g -lncurses
+CXXFLAGS := -W -Wall -Os -std=c++11 -c -lncurses
+LXXFLAGS := -W -Wall -s -Os
 
 BUILDDIR := build
 
@@ -11,7 +11,7 @@ SRCS := $(notdir $(shell find -name '*.cpp'))
 OBJS := $(patsubst %.cpp, $(BUILDDIR)/%.o, $(SRCS))
 
 scenes: builddir $(OBJS) $(SRCS) 
-	$(LXX) $(LXXFLAGS) $(OBJS) -o $(BUILDDIR)/scenes
+	$(LXX) $(LXXFLAGS) $(OBJS) -o $(BUILDDIR)/scenes -lncurses
 
 $(BUILDDIR)/%.o: %.cpp
 	$(CXX) $(CXXFLAGS) $^ -o $@
